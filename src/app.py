@@ -12,7 +12,7 @@ class MovieRecommender:
         self.similarity = None
 
     # Decompress 7z files
-    def decompress():
+    def decompress(self):
         compressed_file = '../models/Models.7z' #dirname + '/models/Models.7z'
         output_dir = '../models' #dirname + '/models'
         try:

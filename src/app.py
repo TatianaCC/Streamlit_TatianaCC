@@ -3,26 +3,47 @@ import pandas as pd
 import joblib
 import ast
 import pathlib
+import py7zr
+import os
 
 dirname = str(pathlib.Path(__file__).parent.parent)
 
-# Read database
-movies_df = pd.read_csv(dirname+'/data/processed/Movies_Database.csv')
-movies_df['genres'] = movies_df['genres'].apply(ast.literal_eval)
+# Decompress 7z files
+def decompress():
+    compressed_file = dirname + '/models/Models.7z'
 
-all_genres = set()
-for genres in movies_df['genres']:
-    all_genres.update(genres)
-genres_list = list(all_genres)
-genres_list = [e for e in genres_list if e != '']
-director = movies_df['director'].unique()
+    output_dir = dirname + '/models'
+    try:
+        with py7zr.SevenZipFile(compressed_file, mode='r') as z:
+            z.extractall(path=output_dir)
+    except Exception as e:
+        print(e)
 
+# Read database and get a list of genres
+@st.cache_data
+def GetData():
+    movies_df = pd.read_csv(dirname+'/data/processed/Movies_Database.csv')
+    movies_df['genres'] = movies_df['genres'].apply(ast.literal_eval)
 
-# Load models
+    all_genres = set()
+    for genres in movies_df['genres']:
+        all_genres.update(genres)
+    genres_list = list(all_genres)
+    genres_list = [e for e in genres_list if e != '']
+    
+    return movies_df, genres_list
 
+# Get model from 7z
+@st.cache_data
+def GetModels():
+    if not os.path.exists(dirname + '/models/cosine_similarity.pkl'):
+        decompress()
+    similarity = joblib.load(dirname + '/models/cosine_similarity.pkl')
+    return similarity 
 
-# Function fo recommend from film name
-def recommend(number, movie):
+# Function to recommend from film name
+def recommend(number, movie, movies_df):
+    similarity = GetModels()
     movie_index = movies_df[movies_df["original_title"] == movie].index[0]
     distances = similarity[movie_index]
     movie_list = sorted(list(enumerate(distances)), reverse = True , key = lambda x: x[1])[1:number]
@@ -32,16 +53,10 @@ def recommend(number, movie):
         recommend_films.append((movies_df.iloc[i[0]].original_title))
     return recommend_films
 
-def filter():
-    filtered_movies = movies_df[movies_df['genres'].apply(lambda x: (genre1 in x) and (genre2 in x))]
-    if not filtered_movies.empty:
-        movie_names = filtered_movies['original_title'].head(number).tolist()
-    else:
-        movie_names = None
-        
-    return movie_names
-
+# Main function
 def main():
+    movies_df, genres_list = GetData()
+
     # Streamlit
     st.title('Movie Recommendation System')
 
@@ -52,7 +67,7 @@ def main():
     filtered_movies = movies_df[movies_df['genres'].apply(lambda x: (genre1 in x) and (genre2 in x))]
     movie_list = filtered_movies['original_title'].tolist()
 
-    # Selector de película
+    # Selector
     selected_movie = st.selectbox("Select a movie", movie_list) if movie_list else None
 
     if not movie_list:
@@ -60,7 +75,7 @@ def main():
     elif selected_movie:
         st.write(f"Movies similar to {selected_movie}:")
         if st.button("Recommend similar movies"):
-            recommended_movies = recommend(number+1, selected_movie)
+            recommended_movies = recommend(number+1, selected_movie, movies_df)
             if recommended_movies:
                 for movie in recommended_movies:
                     st.write(movie)

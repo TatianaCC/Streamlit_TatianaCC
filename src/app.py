@@ -22,7 +22,7 @@ class MovieRecommender:
             print(e)
 
     # Read database and get a list of genres
-    def GetData():
+    def GetData(self):
         if self.movies_df is None or self.genres_list is None:
             self.movies_df = pd.read_csv('../data/processed/Movies_Database.csv') #dirname+'/data/processed/Movies_Database.csv'
             self.movies_df['genres'] = self.movies_df['genres'].apply(ast.literal_eval)
@@ -34,14 +34,14 @@ class MovieRecommender:
             self.genres_list = [e for e in self.genres_list if e != '']
 
     # Get model from 7z
-    def GetModels():
+    def GetModels(self):
         if self.similarity is None:
             if not os.path.exists('../models/cosine_similarity.pkl'): #dirname + '/models/cosine_similarity.pkl'
                 self.decompress()
             self.similarity = joblib.load('../models/cosine_similarity.pkl') # dirname + '/models/cosine_similarity.pkl'
        
     # Function to recommend from film name
-    def recommend(number, movie):
+    def recommend(self, number, movie):
         self.similarity = self.GetModels()
         movie_index = self.movies_df[self.movies_df["original_title"] == movie].index[0]
         distances = self.similarity[movie_index]
@@ -53,7 +53,7 @@ class MovieRecommender:
         return recommend_films
 
     # Main function
-    def main():
+    def main(self):
         self.GetData()
 
         # Streamlit

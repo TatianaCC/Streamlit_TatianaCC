@@ -15,5 +15,3 @@ sympy>=1.10.1
 xgboost
 streamlit
 py7zr
-joblib
-os

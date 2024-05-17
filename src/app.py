@@ -6,13 +6,13 @@ import pathlib
 import py7zr
 import os
 
-dirname = str(pathlib.Path(__file__).parent.parent)
+#dirname = str(pathlib.Path(__file__).parent.parent)
 
 # Decompress 7z files
 def decompress():
-    compressed_file = dirname + '/models/Models.7z'
+    compressed_file = '../models/Models.7z' #dirname + '/models/Models.7z'
 
-    output_dir = dirname + '/models'
+    output_dir = '../models' #dirname + '/models'
     try:
         with py7zr.SevenZipFile(compressed_file, mode='r') as z:
             z.extractall(path=output_dir)
@@ -22,7 +22,7 @@ def decompress():
 # Read database and get a list of genres
 @st.cache_data
 def GetData():
-    movies_df = pd.read_csv(dirname+'/data/processed/Movies_Database.csv')
+    movies_df = pd.read_csv('../data/processed/Movies_Database.csv') #dirname+'/data/processed/Movies_Database.csv'
     movies_df['genres'] = movies_df['genres'].apply(ast.literal_eval)
 
     all_genres = set()
@@ -36,9 +36,9 @@ def GetData():
 # Get model from 7z
 @st.cache_data
 def GetModels():
-    if not os.path.exists(dirname + '/models/cosine_similarity.pkl'):
+    if not os.path.exists('../models/cosine_similarity.pkl'): #dirname + '/models/cosine_similarity.pkl'
         decompress()
-    similarity = joblib.load(dirname + '/models/cosine_similarity.pkl')
+    similarity = joblib.load('../models/cosine_similarity.pkl') # dirname + '/models/cosine_similarity.pkl'
     return similarity 
 
 # Function to recommend from film name

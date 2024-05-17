@@ -16,5 +16,4 @@ xgboost
 streamlit
 py7zr
 joblib
-ast
 os

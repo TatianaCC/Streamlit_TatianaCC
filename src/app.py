@@ -22,6 +22,7 @@ class MovieRecommender:
             print(e)
 
     # Read database and get a list of genres
+    @st.cache_data
     def GetData(self):
         if self.movies_df is None or self.genres_list is None:
             self.movies_df = pd.read_csv('../data/processed/Movies_Database.csv') #dirname+'/data/processed/Movies_Database.csv'
@@ -34,6 +35,7 @@ class MovieRecommender:
             self.genres_list = [e for e in self.genres_list if e != '']
 
     # Get model from 7z
+    @st.cache_data
     def GetModels(self):
         if self.similarity is None:
             if not os.path.exists('../models/cosine_similarity.pkl'): #dirname + '/models/cosine_similarity.pkl'
@@ -42,7 +44,6 @@ class MovieRecommender:
        
     # Function to recommend from film name
     def recommend(self, number, movie):
-        self.similarity = self.GetModels()
         movie_index = self.movies_df[self.movies_df["original_title"] == movie].index[0]
         distances = self.similarity[movie_index]
         movie_list = sorted(list(enumerate(distances)), reverse = True , key = lambda x: x[1])[1:number]
